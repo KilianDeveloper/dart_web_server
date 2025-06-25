@@ -1,12 +1,13 @@
-#include "core/communication/socket.h"
+#include "core/network/socket.h"
 #include "core/http/request.h"
 
 int main() {
-    int port = 80;
-    bool running = true;
-    int sock_fd = createSocket(port);
-    handleRequests(sock_fd, &running, handleHttpRequest);
-    closeSocket(sock_fd);
+    const int port = 80;
+    const bool running = true;
+
+    const int sockFd = createSocket(port);
+    handleRequests(sockFd, &running, handleHttpRequest);
+    closeSocket(sockFd);
 
     return 0;
 }

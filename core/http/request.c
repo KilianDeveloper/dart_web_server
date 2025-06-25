@@ -4,13 +4,15 @@
 
 #include "request.h"
 
-#include "../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdlib.h"
-#include "../communication/protocol.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-void handleHttpRequest(int sock_fd, struct sockaddr_in client_addr, socklen_t client_addr_len) {
-    struct IpV4Address address =  ipv4IntToAddress(client_addr.sin_addr.s_addr);
-    char* ip = ipv4ToString(address);
-    //TODO port
-    printf("Request started from %s:%hu\n", ip, client_addr.sin_port);
+#include "../network/address.h"
+
+void handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t clientAddressLength) {
+    struct IpV4Address address = networkToHostAddress(clientAddress.sin_addr.s_addr, clientAddress.sin_port);
+    char *ip = addressToString(address);
+
+    printf("Request started from %s\n", ip);
     free(ip);
 }

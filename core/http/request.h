@@ -4,9 +4,8 @@
 
 #ifndef REQUEST_H
 #define REQUEST_H
-#include <stdio.h>
 #include <netinet/in.h>
 
-void handleHttpRequest(int sock_fd, struct sockaddr_in client_addr, socklen_t client_addr_len);
+void handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t clientAddressLength);
 
 #endif //REQUEST_H

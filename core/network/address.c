@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/_endian.h>
+#include <netinet/in.h>
 
 struct IpV4Address networkToHostAddress(const unsigned long networkIp, const unsigned short networkPort) {
     struct IpV4Address ipv4IntToAddress = {};

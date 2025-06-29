@@ -12,4 +12,8 @@ add_executable(dart_backend main.c
         core/http/request.h
         core/network/address.c
         core/network/address.h
+        core/http/header.c
+        core/http/header.h
+        core/util/read.c
+        core/util/read.h
 )

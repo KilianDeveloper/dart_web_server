@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include "socket.h"
 #include "../error.h"
+#include <fcntl.h>
 
 int createSocket(int port) {
     int socketFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -43,9 +44,13 @@ int handleRequestAsync(const int connectionFd, const struct sockaddr_in clientAd
     }
 
     if (childPid == 0) {
+        printf("fork\n");
         (*onRequest)(connectionFd, clientAddress, clientAddressLength);
+
         return 0;
     }
+    close(connectionFd);
+
     return 0;
 }
 
@@ -58,9 +63,12 @@ void handleRequests(int socketFd, const bool *running, void (*onRequest)(int, st
             continue;
         }
 
-        handleRequestAsync(conn_fd, client_addr, client_addr_len, onRequest);
+        //set socket to be non-blocking
+        int flags = fcntl(conn_fd, F_GETFL, 0);
+        if (flags == -1) return;
+        fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
 
-        close(conn_fd);
+        handleRequestAsync(conn_fd, client_addr, client_addr_len, onRequest);
     }
 }
 

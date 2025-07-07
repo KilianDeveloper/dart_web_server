@@ -7,6 +7,9 @@
 
 #include <stdio.h>
 
-void readLine(int socketFd, char* buffer, size_t* bufferLength);
+char* readUntil(int socketFd, char separator, size_t* bufferLength);
+
+void readUntilClear(int socketFd);
+
 
 #endif //READ_H

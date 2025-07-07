@@ -16,7 +16,7 @@
  * @param running A pointer to a value, if the handling should still run
  * @param onRequest A pointer to a procedure, that handles a request on the given file-descriptor
  */
-void handleRequests(int socketFd, const bool* running, void (*onRequest)(int, struct sockaddr_in, socklen_t));
+void handleRequests(int socketFd, const bool* running, int (*onRequest)(int, struct sockaddr_in, socklen_t));
 
 /**
  * Create a new socket for duplex-communication,

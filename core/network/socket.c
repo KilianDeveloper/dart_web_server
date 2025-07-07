@@ -6,6 +6,8 @@
 #include "../error.h"
 #include <fcntl.h>
 
+#include "../http/handle.h"
+
 int createSocket(int port) {
     int socketFd = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFd < 0) {
@@ -36,25 +38,33 @@ int createSocket(int port) {
     return socketFd;
 }
 
-int handleRequestAsync(const int connectionFd, const struct sockaddr_in clientAddress, const socklen_t clientAddressLength,
-                        void (*onRequest)(int, struct sockaddr_in, socklen_t)) {
+int handleRequestAsync(const int connectionFd, const struct sockaddr_in clientAddress,
+                       const socklen_t clientAddressLength,
+                       int (*onRequest)(int, struct sockaddr_in, socklen_t)) {
     const pid_t childPid = fork();
     if (childPid < 0) {
         return -1;
     }
-
     if (childPid == 0) {
-        printf("fork\n");
-        (*onRequest)(connectionFd, clientAddress, clientAddressLength);
+        printf("request: processing started...\n");
+        while (1) {
+            const int res = (*onRequest)(connectionFd, clientAddress, clientAddressLength);
+            if (res < 0 || res == CLOSE_CON) {
+                break;
+            }
+        }
+        close(connectionFd);
 
         return 0;
     }
+    printf("main: listening again...\n");
+
     close(connectionFd);
 
     return 0;
 }
 
-void handleRequests(int socketFd, const bool *running, void (*onRequest)(int, struct sockaddr_in, socklen_t)) {
+void handleRequests(int socketFd, const bool *running, int (*onRequest)(int, struct sockaddr_in, socklen_t)) {
     while (*running) {
         struct sockaddr_in client_addr = {};
         socklen_t client_addr_len = sizeof(client_addr);
@@ -67,7 +77,6 @@ void handleRequests(int socketFd, const bool *running, void (*onRequest)(int, st
         int flags = fcntl(conn_fd, F_GETFL, 0);
         if (flags == -1) return;
         fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
-
         handleRequestAsync(conn_fd, client_addr, client_addr_len, onRequest);
     }
 }

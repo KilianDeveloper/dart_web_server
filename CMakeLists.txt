@@ -8,8 +8,8 @@ add_executable(dart_backend main.c
         core/network/socket.h
         core/error.c
         core/error.h
-        core/http/handle.c
-        core/http/handle.h
+        api/handle.c
+        api/handle.h
         core/network/address.c
         core/network/address.h
         core/http/request/header.c
@@ -22,4 +22,10 @@ add_executable(dart_backend main.c
         core/http/response/build.h
         core/http/response/header.c
         core/http/response/header.h
+        core/http/request/path.c
+        core/http/request/path.h
+        api/note/get.c
+        api/note/get.h
+        api/endpoints.c
+        api/endpoints.h
 )

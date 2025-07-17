@@ -10,6 +10,8 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#define CLOSE_CON 1
+
 /**
  * Handle the incoming requests for a socket
  * @param socketFd the socket file descriptor to listen to

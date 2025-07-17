@@ -7,18 +7,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "response/build.h"
+
+#include "endpoints.h"
+#include "../core/http/response//build.h"
 
 #include "string.h"
-#include "request/start.h"
-#include "../network/address.h"
-#include "response/header.h"
+#include "../core/http/request/start.h"
+#include "../core/network/address.h"
+#include "../core/http/response/header.h"
+#include "../core/network/socket.h"
 
 int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t clientAddressLength) {
     struct IpV4Address address = networkToHostAddress(clientAddress.sin_addr.s_addr, clientAddress.sin_port);
     char *ip = addressToString(address);
 
-    char *method = parseHttpMethod(socketFd);
+    size_t methodSize = 2, pathSize = 2;
+    char *method = parseHttpMethod(socketFd, &methodSize);
+
+    char *path = parseHttpPath(socketFd, &pathSize);
+
+    Endpoint *endpoint = findEndpoint(method, methodSize, path, pathSize);
 
     printf("Request started from %s\n", ip);
     fflush(stdout);
@@ -31,13 +39,15 @@ int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t 
     if (!response.body.content) {
         return -1;
     }
-    char* body = "buttonHello World!";
+    char bodySize[8] = {0};
+    char *body = "Hello World!";
+    sprintf(bodySize, "%lu", strlen(body));
 
     response.body.content = body;
     response.body.size = strlen(body) + 1;
 
-    char* httpVersion = "HTTP/1.1";
-    char* statusText = "OK";
+    char *httpVersion = "HTTP/1.1";
+    char *statusText = "OK";
 
     response.startLine.httpVersion = httpVersion;
     response.startLine.httpVersionSize = strlen(httpVersion);
@@ -46,11 +56,11 @@ int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t 
 
     response.startLine.statusTextSize = strlen(statusText);
     response.headers.size = 0;
-    addHeader(&response.headers, "Content-Length", "12");
+    addHeader(&response.headers, "Content-Length", bodySize);
     addHeader(&response.headers, "Content-Type", "text/html");
 
     size_t size = 0;
-    char* c = buildHttpResponse(&response, &size);
+    char *c = buildHttpResponse(&response, &size);
 
     ssize_t written = write(socketFd, c, size);
     //TODO check if closecon

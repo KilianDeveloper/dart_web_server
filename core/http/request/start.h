@@ -12,7 +12,11 @@
 #define METHOD_PATCH "PATCH"
 #define METHOD_HEAD "HEAD"
 #define METHOD_OPTIONS "OPTIONS"
+#include <stddef.h>
 
-char *parseHttpMethod(int socketFd);
+char *parseHttpMethod(int socketFd, size_t *bufferLength);
+
+char *parseHttpPath(int socketFd, size_t *bufferLength);
+
 
 #endif //METHOD_H

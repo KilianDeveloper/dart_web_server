@@ -6,8 +6,6 @@
 #include "../error.h"
 #include <fcntl.h>
 
-#include "../http/handle.h"
-
 int createSocket(int port) {
     int socketFd = socket(AF_INET, SOCK_STREAM, 0);
     if (socketFd < 0) {

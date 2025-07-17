@@ -6,9 +6,12 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <regex.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+
+#include "path.h"
 #include "../../util/read.h"
 
 int isValidMethod(const char *method) {
@@ -17,17 +20,30 @@ int isValidMethod(const char *method) {
            || strcmp(method, METHOD_DELETE) == 0;
 }
 
-char *parseHttpMethod(const int socketFd) {
-    size_t methodSize = 2;
-
-    char *methodBuffer = readUntil(socketFd, ' ', &methodSize);
-    readUntilClear(socketFd);
+char *parseHttpMethod(const int socketFd, size_t *bufferLength) {
+    char *methodBuffer = readUntil(socketFd, ' ', bufferLength);
 
     if (!isValidMethod(methodBuffer)) {
         free(methodBuffer);
         return NULL;
     }
     return methodBuffer;
+}
+
+char *parseHttpPath(const int socketFd, size_t *bufferLength) {
+    char *methodBuffer = readUntil(socketFd, ' ', bufferLength);
+
+    if (!isValidPath(methodBuffer)) {
+        free(methodBuffer);
+        return NULL;
+    }
+
+    char *temp = toRelativePath(methodBuffer, bufferLength);
+    if (!temp) {
+        free(methodBuffer);
+        return NULL;
+    }
+    return temp;
 }
 
 void parsePath(int socketFd) {

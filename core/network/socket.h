@@ -11,6 +11,8 @@
 #define SOCKET_H
 
 #define CLOSE_CON 1
+#define KEEP_CON 0
+
 
 /**
  * Handle the incoming requests for a socket

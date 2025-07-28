@@ -24,12 +24,23 @@ int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t 
     size_t methodSize = 2, pathSize = 2;
     char *method = parseHttpMethod(socketFd, &methodSize);
 
+    if (method == NULL) {
+        free(ip);
+        return KEEP_CON;
+    }
+
     char *path = parseHttpPath(socketFd, &pathSize);
+
+    if (path == NULL) {
+        free(ip);
+        return KEEP_CON;
+    }
+
+    printf("request from %s: %s %s\n", ip, method, path);
+    fflush(stdout);
 
     Endpoint *endpoint = findEndpoint(method, methodSize, path, pathSize);
 
-    printf("Request started from %s\n", ip);
-    fflush(stdout);
     free(ip);
 
     struct HttpResponse response;
@@ -63,6 +74,9 @@ int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t 
     char *c = buildHttpResponse(&response, &size);
 
     ssize_t written = write(socketFd, c, size);
+    while (written < size) {
+        written += write(socketFd, c + written, size - written);
+    }
     //TODO check if closecon
     return CLOSE_CON;
 }

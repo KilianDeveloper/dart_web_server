@@ -23,6 +23,9 @@ int isValidMethod(const char *method) {
 char *parseHttpMethod(const int socketFd, size_t *bufferLength) {
     char *methodBuffer = readUntil(socketFd, ' ', bufferLength);
 
+    if (methodBuffer == NULL) {
+        return NULL;
+    }
     if (!isValidMethod(methodBuffer)) {
         free(methodBuffer);
         return NULL;
@@ -33,6 +36,9 @@ char *parseHttpMethod(const int socketFd, size_t *bufferLength) {
 char *parseHttpPath(const int socketFd, size_t *bufferLength) {
     char *methodBuffer = readUntil(socketFd, ' ', bufferLength);
 
+    if (methodBuffer == NULL) {
+        return NULL;
+    }
     if (!isValidPath(methodBuffer)) {
         free(methodBuffer);
         return NULL;
@@ -44,16 +50,4 @@ char *parseHttpPath(const int socketFd, size_t *bufferLength) {
         return NULL;
     }
     return temp;
-}
-
-void parsePath(int socketFd) {
-    size_t methodSize = 2;
-
-    char *methodBuffer = readUntil(socketFd, ' ', &methodSize);
-    readUntilClear(socketFd);
-
-    if (methodBuffer != NULL) {
-        free(methodBuffer);
-    }
-    printf("Method parsed from %s\n", methodBuffer);
 }

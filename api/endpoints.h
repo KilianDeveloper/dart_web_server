@@ -12,8 +12,8 @@ typedef struct HttpResponse (*RequestHandler)(char *path, char *pathLength, char
 typedef struct {
     char *method;
     size_t methodLength;
-    char *path;
-    size_t pathLength;
+    char *pathPattern;
+    size_t pathPatternLength;
     RequestHandler handler;
 } Endpoint;
 

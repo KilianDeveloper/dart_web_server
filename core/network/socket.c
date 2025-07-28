@@ -5,6 +5,7 @@
 #include "socket.h"
 #include "../error.h"
 #include <fcntl.h>
+#include <stdlib.h>
 
 int createSocket(int port) {
     int socketFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -39,27 +40,46 @@ int createSocket(int port) {
 int handleRequestAsync(const int connectionFd, const struct sockaddr_in clientAddress,
                        const socklen_t clientAddressLength,
                        int (*onRequest)(int, struct sockaddr_in, socklen_t)) {
-    const pid_t childPid = fork();
-    if (childPid < 0) {
-        return -1;
-    }
-    if (childPid == 0) {
-        printf("request: processing started...\n");
-        while (1) {
-            const int res = (*onRequest)(connectionFd, clientAddress, clientAddressLength);
-            if (res < 0 || res == CLOSE_CON) {
-                break;
-            }
+    //TODO start delete
+
+   /* int trys = 0;
+    while (1) {
+        const int res = (*onRequest)(connectionFd, clientAddress, clientAddressLength);
+        if (res < 0 || res == CLOSE_CON || trys > 10000) {
+            break;
         }
-        close(connectionFd);
-
-        return 0;
+        trys++;
     }
-    printf("main: listening again...\n");
-
+    shutdown(connectionFd, SHUT_WR);
     close(connectionFd);
+    return 0;*/
+    //TODO end delete
 
-    return 0;
+     const pid_t childPid = fork();
+     if (childPid < 0) {
+         return -1;
+     }
+     if (childPid == 0) {
+         printf("request: processing started...\n");
+         int trys = 0;
+         while (1) {
+             const int res = (*onRequest)(connectionFd, clientAddress, clientAddressLength);
+             if (res < 0 || res == CLOSE_CON ||trys > 10000) {
+                 break;
+             }
+             trys++;
+         }
+         close(connectionFd);
+
+       //  _exit(EXIT_SUCCESS);
+         return 0;
+
+     }
+     printf("main: listening again...\n\n");
+
+     close(connectionFd);
+
+     return 0;
 }
 
 void handleRequests(int socketFd, const bool *running, int (*onRequest)(int, struct sockaddr_in, socklen_t)) {
@@ -67,6 +87,8 @@ void handleRequests(int socketFd, const bool *running, int (*onRequest)(int, str
         struct sockaddr_in client_addr = {};
         socklen_t client_addr_len = sizeof(client_addr);
         const int conn_fd = accept(socketFd, (struct sockaddr *) &client_addr, &client_addr_len);
+        printf("socket: accept success\n");
+        fflush(stdout);
         if (conn_fd < 0) {
             continue;
         }

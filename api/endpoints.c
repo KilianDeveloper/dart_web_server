@@ -4,6 +4,7 @@
 
 #include "endpoints.h"
 
+#include <regex.h>
 #include <string.h>
 
 #include "../core/http/request/start.h"
@@ -19,26 +20,22 @@ static const Endpoint endpoints[] = {
     }
 };
 
+int isSameEndpoint(char *path, char *pattern) {
+    regex_t regex;
+    regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB);
+    int compared = regexec(&regex, path, 0, NULL, 0);
+    return !compared;
+}
+
 const Endpoint *findEndpoint(char *method, size_t methodLength, char *path, size_t pathLength) {
     for (int endpointIndex = 0; endpointIndex < sizeof(endpoints) / sizeof(Endpoint); endpointIndex++) {
         const Endpoint *endpoint = &endpoints[endpointIndex];
         if (strcmp(endpoints[endpointIndex].method, method) != 0) {
             continue;
         }
+        int pathMatches = isSameEndpoint(path, endpoint->pathPattern);
 
-        int isSameEndpoint = 1;
-        int i = 0;
-        while (i < pathLength && i < endpoint->pathLength && endpoint->path[i] != '{') {
-            if (endpoint->path[i] != path[i]) {
-                isSameEndpoint = 0;
-                break;
-            }
-            i++;
-        }
-        //TODO check if provided is longer (test with /notes12345 -> this should not work)
-
-
-        if (isSameEndpoint) {
+        if (pathMatches) {
             return endpoint;
         }
     }

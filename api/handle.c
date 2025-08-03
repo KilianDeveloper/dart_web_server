@@ -16,6 +16,8 @@
 #include "../core/network/address.h"
 #include "../core/http/response/header.h"
 #include "../core/network/socket.h"
+#include "./status/notFound.h"
+#include "../core/http/response/send.h"
 
 int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t clientAddressLength) {
     struct IpV4Address address = networkToHostAddress(clientAddress.sin_addr.s_addr, clientAddress.sin_port);
@@ -39,7 +41,12 @@ int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t 
     printf("request from %s: %s %s\n", ip, method, path);
     fflush(stdout);
 
-    Endpoint *endpoint = findEndpoint(method, methodSize, path, pathSize);
+    const Endpoint *endpoint = findEndpoint(method, methodSize, path, pathSize);
+
+    if (!endpoint) {
+        struct HttpResponse response = generateNotFound();
+        sendHttpResponse(socketFd, &response);
+    }
 
     free(ip);
 
@@ -70,13 +77,8 @@ int handleHttpRequest(int socketFd, struct sockaddr_in clientAddress, socklen_t 
     addHeader(&response.headers, "Content-Length", bodySize);
     addHeader(&response.headers, "Content-Type", "text/html");
 
-    size_t size = 0;
-    char *c = buildHttpResponse(&response, &size);
+    sendHttpResponse(socketFd, &response);
 
-    ssize_t written = write(socketFd, c, size);
-    while (written < size) {
-        written += write(socketFd, c + written, size - written);
-    }
     //TODO check if closecon
     return CLOSE_CON;
 }

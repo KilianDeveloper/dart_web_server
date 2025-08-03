@@ -28,4 +28,8 @@ add_executable(dart_backend main.c
         api/note/get.h
         api/endpoints.c
         api/endpoints.h
+        api/status/notFound.c
+        api/status/notFound.h
+        core/http/response/send.c
+        core/http/response/send.h
 )
